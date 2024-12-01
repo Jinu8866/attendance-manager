@@ -39,18 +39,30 @@ exports.createMeeting = async (req, res) => {
 // 모임 수정
 exports.updateMeeting = async (req, res) => {
   const { id } = req.params;
-  const { date, time, location, meetingName } = req.body;
+  const { date, time, location, meetingName, attendees } = req.body; 
 
   try {
+  
     const updatedMeeting = await Meeting.findByIdAndUpdate(
       id,
       { date, time, location, meeting_name: meetingName },
       { new: true }
     );
 
-
     if (!updatedMeeting) {
       return res.status(404).json({ message: 'Meeting not found' });
+    }
+
+    if (attendees) {
+      const validAttendees = await User.find({ _id: { $in: attendees } }).select('_id');
+      if (validAttendees.length !== attendees.length) {
+        return res.status(400).json({ message: 'Some attendees are invalid' });
+      }
+
+      updatedMeeting.attendees = validAttendees.map((user) => user._id);
+      updatedMeeting.total_users = validAttendees.length; 
+
+      await updatedMeeting.save();
     }
 
     res.status(200).json(updatedMeeting);
@@ -59,6 +71,7 @@ exports.updateMeeting = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
 
 // 모임 삭제
 exports.deleteMeeting = async (req, res) => {
