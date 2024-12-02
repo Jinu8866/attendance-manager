@@ -8,6 +8,7 @@ const meetingSchema = new mongoose.Schema({
   organizer_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   attendees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   total_users: { type: Number, default: 0 },
+  qrCode: { type: String },
 });
 
 meetingSchema.pre('save', function(next) {
